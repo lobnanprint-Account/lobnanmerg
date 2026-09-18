@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" fill="none">
+  <defs>
+    <!-- Gradient for left A stroke -->
+    <linearGradient id="gradLeftA" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <!-- Gradient for right A stroke -->
+    <linearGradient id="gradRightA" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="60%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Overlapping AA Monogram Icon Group -->
+  <g transform="translate(130, 8) scale(0.85)">
+    <!-- Left 'A' Outer Structure -->
+    <path
+      d="M20 100 L55 15 L75 15 L108 100 L88 100 L80 78 L38 78 L30 100 Z M44 62 L74 62 L59 23 Z"
+      fill="url(#gradLeftA)"
+    />
+    <!-- Right 'A' Overlapping Structure -->
+    <path
+      d="M55 100 L90 15 L110 15 L143 100 L123 100 L115 78 L73 78 L65 100 Z M79 62 L109 62 L94 23 Z"
+      fill="url(#gradRightA)"
+    />
+  </g>
+
+  <!-- Brand Typography "Al-Ayham" -->
+  <text
+    x="200"
+    y="128"
+    font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif"
+    font-weight="800"
+    font-size="34"
+    fill="#0f2b5c"
+    text-anchor="middle"
+    letter-spacing="-0.5"
+  >
+    Al-Ayham
+  </text>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" fill="none">
+  <!-- Background Badge Container -->
+  <rect width="320" height="100" rx="16" fill="#ffffff" />
+  
+  <!-- Arabic Calligraphy "لبنان" Representation -->
+  <g transform="translate(20, 8)">
+    <!-- Main Calligraphy Strokes in Navy Blue (#0f375a) -->
+    <path d="M220 50 C210 20, 195 12, 185 30 C180 38, 182 52, 175 58 C165 66, 145 66, 135 50 C128 38, 132 20, 120 18 C110 16, 100 32, 95 48 C90 62, 75 66, 60 55 C50 48, 48 30, 42 22 C38 16, 32 18, 30 25 C28 35, 34 50, 25 58 C18 64, 10 60, 5 52 C2 47, 0 52, 0 58 C0 68, 15 75, 30 75 C55 75, 70 65, 80 50 C88 38, 95 32, 105 32 C115 32, 118 48, 122 58 C130 72, 155 74, 170 65 C185 55, 188 40, 192 30 C198 18, 212 28, 215 42 C218 55, 210 68, 222 72 C228 74, 235 68, 238 60 Z" fill="#0f375a"/>
+    
+    <!-- Accent Marks & Dots in Vibrant Orange (#f2811d) -->
+    <path d="M125 10 C128 5, 135 5, 138 10 C140 15, 132 20, 125 10 Z" fill="#f2811d"/>
+    <path d="M180 8 C184 2, 192 2, 195 8 C198 14, 188 18, 180 8 Z" fill="#f2811d"/>
+    <path d="M75 12 C80 6, 88 8, 86 14 C84 20, 72 18, 75 12 Z" fill="#f2811d"/>
+  </g>
+  
+  <!-- English Subtext "LOBNAN PRINT" -->
+  <g transform="translate(20, 78)">
+    <text x="0" y="10" font-family="'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" font-weight="900" font-size="15" fill="#f2811d" letter-spacing="1.5">LOBNAN PRINT</text>
+    <!-- Orange Swoosh -->
+    <path d="M150 12 Q 175 18, 210 8 Q 180 16, 150 12 Z" fill="#f2811d"/>
+    <!-- Circular Emblem -->
+    <circle cx="138" cy="8" r="6" stroke="#0f375a" stroke-width="2" fill="none"/>
+    <path d="M135 8 L141 8 M138 5 L138 11" stroke="#0f375a" stroke-width="1.5"/>
+  </g>
+</svg>

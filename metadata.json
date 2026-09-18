@@ -1,0 +1,8 @@
+{
+  "name": "برنامج الأيهم الذكي",
+  "description": "برنامج الأيهم الذكي - مطبعة ومكتبة لبنان (م. رائد صالحة) - نظام دمج المراسلات والشهادات والبطاقات والتصاميم التلقائية من الإكسل.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

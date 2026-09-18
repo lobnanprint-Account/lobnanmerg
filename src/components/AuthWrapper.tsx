@@ -20,16 +20,22 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(sessionInfo),
         });
-        const data = await res.json();
         
-        if (!data.success) {
-          // Heartbeat failed (e.g. logged in from another device)
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data && data.success === false) {
+            setIsAuthenticated(false);
+            setSessionInfo(null);
+            alert(data.error || 'تم إنهاء جلستك. ربما تم تسجيل الدخول من جهاز آخر.');
+          }
+        } else if (res.status === 401 || res.status === 403) {
+          const data = await res.json().catch(() => ({}));
           setIsAuthenticated(false);
           setSessionInfo(null);
           alert(data.error || 'تم إنهاء جلستك. ربما تم تسجيل الدخول من جهاز آخر.');
         }
       } catch (err) {
-        console.error('Heartbeat error:', err);
+        // Silent on pure static host / no backend connection
       }
     }, 5000); // Heartbeat every 5 seconds
 

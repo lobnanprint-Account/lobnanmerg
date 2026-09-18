@@ -16,27 +16,54 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     setError('');
     setIsLoading(true);
 
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPassword = password.trim();
+
+    // 1. Authorized users list
+    const validUsers = [
+      { email: 'lobnanprint@gmail.com', password: 'Aa@12345678' },
+      { email: 'raid.salha@gmail.com', password: 'Aa@12345678' }
+    ];
+
+    const isAuthorized = validUsers.some(
+      (u) => u.email.toLowerCase() === cleanEmail && u.password === cleanPassword
+    );
+
+    if (!isAuthorized) {
+      setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      setIsLoading(false);
+      return;
+    }
+
+    const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // 2. Try checking backend server for concurrent device protection (with 1.5s timeout)
     try {
-      const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, sessionId }),
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        onLogin(email, sessionId);
-      } else {
-        setError(data.error || 'حدث خطأ أثناء تسجيل الدخول');
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword, sessionId }),
+        signal: controller.signal
+      }).catch(() => null);
+
+      clearTimeout(timeoutId);
+
+      if (res && res.status === 403) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error || 'هذا الحساب مستخدم حالياً على جهاز آخر.');
+        setIsLoading(false);
+        return;
       }
-    } catch (err) {
-      setError('خطأ في الاتصال بالخادم.');
-    } finally {
-      setIsLoading(false);
+    } catch {
+      // If server is not present (e.g. static hosting on Vercel), proceed safely
     }
+
+    // 3. Grant access
+    onLogin(cleanEmail, sessionId);
+    setIsLoading(false);
   };
 
   return (

@@ -36,6 +36,7 @@ export interface GridSetup {
   marginRightMm: number;
   gapHorizontalMm: number; // Distance between items horizontally
   gapVerticalMm: number; // Distance between items vertically
+  direction?: 'rtl' | 'ltr'; // Column numbering direction ('rtl' for Arabic, 'ltr' for English)
   slotConfigs?: Record<number, GridSlotConfig>; // Custom per-slot configs (key = slotIndex 0..N-1)
 }
 

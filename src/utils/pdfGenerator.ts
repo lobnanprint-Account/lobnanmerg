@@ -242,23 +242,40 @@ export async function generateMailMergePDF(config: PDFExportConfig): Promise<jsP
     }
   }
 
-  // 3. Calculate Grid Geometry (in MM & PX at 300 DPI)
+  // Ensure custom and Arabic fonts are loaded
+  if (typeof document !== 'undefined' && document.fonts) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // ignore
+    }
+  }
+
+  // 3. Normalize Paper Dimensions based on Orientation
+  const actualWidthMm =
+    orientation === 'landscape' ? Math.max(widthMm, heightMm) : Math.min(widthMm, heightMm);
+  const actualHeightMm =
+    orientation === 'landscape' ? Math.min(widthMm, heightMm) : Math.max(widthMm, heightMm);
+
+  // Calculate Grid Geometry (in MM & PX at 300 DPI)
   const scale = 2.5; // High resolution scale factor
-  const paperWidthPx = Math.round(widthMm * MM_TO_PX_300DPI);
-  const paperHeightPx = Math.round(heightMm * MM_TO_PX_300DPI);
+  const paperWidthPx = Math.round(actualWidthMm * MM_TO_PX_300DPI);
+  const paperHeightPx = Math.round(actualHeightMm * MM_TO_PX_300DPI);
 
   const marginTopPx = grid.marginTopMm * MM_TO_PX_300DPI;
+  const marginBottomPx = grid.marginBottomMm * MM_TO_PX_300DPI;
   const marginLeftPx = grid.marginLeftMm * MM_TO_PX_300DPI;
+  const marginRightPx = grid.marginRightMm * MM_TO_PX_300DPI;
   const gapHorizPx = grid.gapHorizontalMm * MM_TO_PX_300DPI;
   const gapVertPx = grid.gapVerticalMm * MM_TO_PX_300DPI;
 
   const printableWidthPx =
-    paperWidthPx - grid.marginLeftMm * MM_TO_PX_300DPI - grid.marginRightMm * MM_TO_PX_300DPI - (grid.cols - 1) * gapHorizPx;
+    paperWidthPx - marginLeftPx - marginRightPx - (grid.cols - 1) * gapHorizPx;
   const printableHeightPx =
-    paperHeightPx - grid.marginTopMm * MM_TO_PX_300DPI - grid.marginBottomMm * MM_TO_PX_300DPI - (grid.rows - 1) * gapVertPx;
+    paperHeightPx - marginTopPx - marginBottomPx - (grid.rows - 1) * gapVertPx;
 
-  const itemWidthPx = printableWidthPx / grid.cols;
-  const itemHeightPx = printableHeightPx / grid.rows;
+  const itemWidthPx = Math.max(1, printableWidthPx / grid.cols);
+  const itemHeightPx = Math.max(1, printableHeightPx / grid.rows);
 
   const itemsPerPage = grid.rows * grid.cols;
 
@@ -284,17 +301,17 @@ export async function generateMailMergePDF(config: PDFExportConfig): Promise<jsP
     totalPages = maxSpan;
   }
 
-  // Initialize jsPDF document
+  // Initialize jsPDF document with exact actual page dimensions
   const pdf = new jsPDF({
     orientation: orientation === 'landscape' ? 'l' : 'p',
     unit: 'mm',
-    format: [widthMm, heightMm],
+    format: [actualWidthMm, actualHeightMm],
   });
 
   // Render Page by Page
   for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
     if (pageIdx > 0) {
-      pdf.addPage([widthMm, heightMm], orientation === 'landscape' ? 'l' : 'p');
+      pdf.addPage([actualWidthMm, actualHeightMm], orientation === 'landscape' ? 'l' : 'p');
     }
 
     // Create Page Canvas
@@ -320,7 +337,11 @@ export async function generateMailMergePDF(config: PDFExportConfig): Promise<jsP
       const slotCfg = getSlotConfig(grid, i);
       if (!slotCfg.enabled) continue;
 
-      const itemX = marginLeftPx + c * (itemWidthPx + gapHorizPx);
+      // In Arabic RTL, Slot 0 starts on the right column to match the on-screen preview
+      const isRtl = grid.direction !== 'ltr';
+      const colFromLeft = isRtl ? grid.cols - 1 - c : c;
+
+      const itemX = marginLeftPx + colFromLeft * (itemWidthPx + gapHorizPx);
       const itemY = marginTopPx + r * (itemHeightPx + gapVertPx);
 
       // Draw Item Card with Slot Transforms (Rotation, Scale, Offsets)
@@ -368,7 +389,7 @@ export async function generateMailMergePDF(config: PDFExportConfig): Promise<jsP
 
     // Convert Canvas to High Quality Image JPEG/PNG and add to PDF
     const pageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    pdf.addImage(pageDataUrl, 'JPEG', 0, 0, widthMm, heightMm);
+    pdf.addImage(pageDataUrl, 'JPEG', 0, 0, actualWidthMm, actualHeightMm);
 
     // Progress Callback
     if (onProgress) {

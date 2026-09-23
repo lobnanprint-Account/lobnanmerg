@@ -174,6 +174,7 @@ export const PreviewSheetModal: React.FC<PreviewSheetModalProps> = ({
             <div
               style={{
                 display: 'grid',
+                direction: grid.direction === 'ltr' ? 'ltr' : 'rtl',
                 gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
                 gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
                 columnGap: `${grid.gapHorizontalMm}mm`,

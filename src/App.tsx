@@ -542,6 +542,15 @@ export default function App() {
   const selectedElement = elements.find((el) => el.id === selectedElementId) || null;
   const activeRecord = dataRows[activeRecordIndex] || ({} as DataRow);
 
+  const actualPaperWidthMm =
+    orientation === 'landscape'
+      ? Math.max(paperDimensions.widthMm, paperDimensions.heightMm)
+      : Math.min(paperDimensions.widthMm, paperDimensions.heightMm);
+  const actualPaperHeightMm =
+    orientation === 'landscape'
+      ? Math.min(paperDimensions.widthMm, paperDimensions.heightMm)
+      : Math.max(paperDimensions.widthMm, paperDimensions.heightMm);
+
   return (
     <div className="h-screen flex flex-col bg-slate-100 text-slate-800 font-sans antialiased overflow-hidden select-none">
       {/* Header Bar (Fixed at Top) */}
@@ -719,8 +728,8 @@ export default function App() {
             onAddManualTextBox={handleAddStaticText}
             paperOrientation={orientation}
             paperSize={paperSize}
-            paperWidthMm={paperDimensions.widthMm}
-            paperHeightMm={paperDimensions.heightMm}
+            paperWidthMm={actualPaperWidthMm}
+            paperHeightMm={actualPaperHeightMm}
             grid={grid}
           />
         </main>
@@ -736,7 +745,7 @@ export default function App() {
           </span>
           <span className="text-slate-300">|</span>
           <span className="text-slate-700 font-sans">
-            الورقة: <span className="font-mono font-bold">{paperSize}</span> ({paperDimensions.widthMm} × {paperDimensions.heightMm} مم)
+            الورقة: <span className="font-mono font-bold">{paperSize}</span> ({actualPaperWidthMm} × {actualPaperHeightMm} مم)
           </span>
           <span className="text-slate-300">|</span>
           <span className="text-slate-700 font-sans">
@@ -779,8 +788,8 @@ export default function App() {
         onClose={() => setIsPreviewModalOpen(false)}
         orientation={orientation}
         paperSize={paperSize}
-        paperWidthMm={paperDimensions.widthMm}
-        paperHeightMm={paperDimensions.heightMm}
+        paperWidthMm={actualPaperWidthMm}
+        paperHeightMm={actualPaperHeightMm}
         grid={grid}
         bgImageUrl={bgImageUrl}
         elements={elements}
@@ -795,8 +804,8 @@ export default function App() {
         onClose={() => setIsExportModalOpen(false)}
         orientation={orientation}
         paperSize={paperSize}
-        paperWidthMm={paperDimensions.widthMm}
-        paperHeightMm={paperDimensions.heightMm}
+        paperWidthMm={actualPaperWidthMm}
+        paperHeightMm={actualPaperHeightMm}
         grid={grid}
         bgImageUrl={bgImageUrl}
         elements={elements}

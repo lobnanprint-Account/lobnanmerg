@@ -93,9 +93,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const sheetAspectRatio = actualPaperWidthMm / actualPaperHeightMm;
 
   const printableWidthMm =
-    paperWidthMm - grid.marginLeftMm - grid.marginRightMm - (grid.cols - 1) * grid.gapHorizontalMm;
+    actualPaperWidthMm - grid.marginLeftMm - grid.marginRightMm - (grid.cols - 1) * grid.gapHorizontalMm;
   const printableHeightMm =
-    paperHeightMm - grid.marginTopMm - grid.marginBottomMm - (grid.rows - 1) * grid.gapVerticalMm;
+    actualPaperHeightMm - grid.marginTopMm - grid.marginBottomMm - (grid.rows - 1) * grid.gapVerticalMm;
 
   const itemWidthMm = Math.max(10, printableWidthMm / grid.cols);
   const itemHeightMm = Math.max(10, printableHeightMm / grid.rows);
@@ -361,6 +361,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               <div
                 style={{
                   display: 'grid',
+                  direction: grid.direction === 'ltr' ? 'ltr' : 'rtl',
                   gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
                   gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
                   columnGap: `${grid.gapHorizontalMm}mm`,

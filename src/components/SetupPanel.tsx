@@ -97,11 +97,32 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
     }
   };
 
+  const handleOrientationChange = (newOrientation: PaperOrientation) => {
+    onChangeOrientation(newOrientation);
+    const w =
+      newOrientation === 'landscape'
+        ? Math.max(paperDimensions.widthMm, paperDimensions.heightMm)
+        : Math.min(paperDimensions.widthMm, paperDimensions.heightMm);
+    const h =
+      newOrientation === 'landscape'
+        ? Math.min(paperDimensions.widthMm, paperDimensions.heightMm)
+        : Math.max(paperDimensions.widthMm, paperDimensions.heightMm);
+    onChangePaperDimensions({ widthMm: w, heightMm: h });
+  };
+
   const handleSelectPaperSize = (size: PaperSize) => {
     onChangePaperSize(size);
     if (size !== 'Custom') {
       const base = PREDEFINED_SIZES[size];
-      onChangePaperDimensions({ ...base });
+      const w =
+        orientation === 'landscape'
+          ? Math.max(base.widthMm, base.heightMm)
+          : Math.min(base.widthMm, base.heightMm);
+      const h =
+        orientation === 'landscape'
+          ? Math.min(base.widthMm, base.heightMm)
+          : Math.max(base.widthMm, base.heightMm);
+      onChangePaperDimensions({ widthMm: w, heightMm: h });
     }
   };
 
@@ -163,7 +184,7 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => onChangeOrientation('landscape')}
+              onClick={() => handleOrientationChange('landscape')}
               className={`py-1.5 px-2 rounded text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
                 orientation === 'landscape'
                   ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-2xs'
@@ -175,7 +196,7 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => onChangeOrientation('portrait')}
+              onClick={() => handleOrientationChange('portrait')}
               className={`py-1.5 px-2 rounded text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
                 orientation === 'portrait'
                   ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-2xs'
@@ -357,6 +378,35 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
                 className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 text-xs"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Column Numbering Direction (RTL / LTR) */}
+        <div className="space-y-1.5 pt-1 border-t border-slate-200">
+          <label className="text-[11px] font-semibold text-slate-600 block">ترتيب أقسام الترقيم على الورقة:</label>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => onChangeGrid({ ...grid, direction: 'rtl' })}
+              className={`py-1.5 px-2 rounded text-[11px] font-bold border transition ${
+                grid.direction !== 'ltr'
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-2xs'
+                  : 'bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              يمين ← يسار (عربي)
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeGrid({ ...grid, direction: 'ltr' })}
+              className={`py-1.5 px-2 rounded text-[11px] font-bold border transition ${
+                grid.direction === 'ltr'
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-2xs'
+                  : 'bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              يسار ← يمين (إنجليزي)
+            </button>
           </div>
         </div>
 

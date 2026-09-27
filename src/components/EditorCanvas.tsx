@@ -15,7 +15,14 @@ import {
   ZoomOut,
 } from 'lucide-react';
 import { DataRow, FieldElement, GridSetup, PaperOrientation, PaperSize, TextEffect } from '../types';
-import { getElementTextValue, getRowForElement, getShadowRgba, getSlotConfig, REFERENCE_CARD_WIDTH } from '../utils/elementUtils';
+import {
+  getComputedElementCss,
+  getElementTextValue,
+  getRowForElement,
+  getShadowRgba,
+  getSlotConfig,
+  REFERENCE_CARD_WIDTH,
+} from '../utils/elementUtils';
 
 interface EditorCanvasProps {
   bgImageUrl: string;
@@ -100,6 +107,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const itemWidthMm = Math.max(10, printableWidthMm / grid.cols);
   const itemHeightMm = Math.max(10, printableHeightMm / grid.rows);
   const aspectRatio = itemWidthMm / itemHeightMm;
+
+  // In full sheet mode, calculate font scale based on each card slot's rendered width
+  const sheetPrintableRatio = printableWidthMm / actualPaperWidthMm;
+  const fullSheetCardWidthPx = Math.max(10, ((cardWidth || 780) * sheetPrintableRatio) / grid.cols);
+  const fullSheetFontScale = fullSheetCardWidthPx / REFERENCE_CARD_WIDTH;
 
   const activeSlotRef = useRef<HTMLDivElement | null>(null);
 
@@ -435,11 +447,14 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                               style={{
                                 left: `${el.xPercent}%`,
                                 top: `${el.yPercent}%`,
-                                transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
+                                transformOrigin: '0 0',
+                                transform: `rotate(${style.rotation || 0}deg) translate(-50%, -50%)`,
                                 opacity: style.opacity ?? 1,
+                                outline: isSelected ? '2px dashed #4f46e5' : undefined,
+                                outlineOffset: isSelected ? '3px' : undefined,
                               }}
                               className={`absolute cursor-move select-none p-1 transition-shadow ${
-                                isSelected ? 'ring-2 ring-indigo-500 bg-indigo-50/80 rounded' : 'hover:ring-1 hover:ring-indigo-300'
+                                isSelected ? 'z-30' : 'hover:outline hover:outline-1 hover:outline-indigo-300'
                               }`}
                             >
                               <div className="bg-white p-1 rounded border border-slate-300 shadow-2xs flex flex-col items-center">
@@ -450,17 +465,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                           );
                         }
 
-                        const text = getElementTextValue(el, dataRows, cardOrPageIndex, slotCfg);
-                        const scaledFontSize = Math.max(6, Math.round(style.fontSize * fontScale * 0.5));
-                        const activeFont = isSelected && hoverPreviewFont ? hoverPreviewFont : (style.fontFamily || 'Cairo');
+                        const text =
+                          getElementTextValue(el, dataRows, cardOrPageIndex, slotCfg) ||
+                          el.label ||
+                          (el.fieldName ? `[${el.fieldName}]` : 'نص جديد');
 
-                        const shadowStyle = style.shadow?.enabled
-                          ? `${style.shadow.offsetX ?? 2}px ${style.shadow.offsetY ?? 2}px ${style.shadow.blur ?? 4}px ${getShadowRgba(style.shadow.color || '#000000', style.shadow.opacity ?? 0.6)}`
-                          : undefined;
-
-                        const strokeStyle = style.stroke?.enabled
-                          ? `${Math.max(1, Math.round((style.stroke.width || 1) * fontScale * 0.5))}px ${style.stroke.color || '#000000'}`
-                          : undefined;
+                        const computedStyle = getComputedElementCss(style, fullSheetFontScale, {
+                          isSelected,
+                          hoverPreviewFont,
+                        });
 
                         return (
                           <div
@@ -473,21 +486,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                             style={{
                               left: `${el.xPercent}%`,
                               top: `${el.yPercent}%`,
-                              transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
-                              fontFamily: activeFont,
-                              fontSize: `${scaledFontSize}px`,
-                              fontWeight: style.fontWeight || 'normal',
-                              color: style.color || '#000000',
-                              textAlign: style.textAlign || 'right',
-                              textShadow: shadowStyle,
-                              WebkitTextStroke: strokeStyle,
-                              backgroundColor: style.bg?.enabled ? style.bg.color : undefined,
-                              padding: style.bg?.enabled ? `${style.bg.padding || 2}px` : undefined,
-                              borderRadius: style.bg?.enabled ? `${style.bg.borderRadius || 2}px` : undefined,
-                              opacity: style.opacity ?? 1,
+                              ...computedStyle,
+                              outline: isSelected ? '2px dashed #4f46e5' : undefined,
+                              outlineOffset: isSelected ? '3px' : undefined,
                             }}
-                            className={`absolute cursor-move select-none whitespace-nowrap leading-tight transition-shadow ${
-                              isSelected ? 'ring-2 ring-indigo-500 rounded px-1' : 'hover:ring-1 hover:ring-indigo-300'
+                            className={`absolute cursor-move select-none whitespace-nowrap transition-shadow ${
+                              isSelected ? 'z-30' : 'hover:outline hover:outline-1 hover:outline-indigo-300'
                             }`}
                           >
                             {text}
@@ -551,13 +555,14 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                       style={{
                         left: `${el.xPercent}%`,
                         top: `${el.yPercent}%`,
-                        transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
+                        transformOrigin: '0 0',
+                        transform: `rotate(${style.rotation || 0}deg) translate(-50%, -50%)`,
                         opacity: style.opacity ?? 1,
+                        outline: isSelected ? '2px dashed #4f46e5' : undefined,
+                        outlineOffset: isSelected ? '3px' : undefined,
                       }}
                       className={`absolute cursor-move select-none p-1.5 transition-shadow ${
-                        isSelected
-                          ? 'ring-2 ring-indigo-600 bg-indigo-50/90 rounded shadow-md'
-                          : 'hover:ring-1 hover:ring-indigo-300'
+                        isSelected ? 'z-30' : 'hover:outline hover:outline-1 hover:outline-indigo-300'
                       }`}
                     >
                       <div className="bg-white p-2 rounded border border-slate-300 shadow-2xs flex flex-col items-center">
@@ -568,17 +573,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   );
                 }
 
-                const text = getElementTextValue(el, dataRows, activeRecordIndex);
-                const scaledFontSize = Math.max(8, Math.round(style.fontSize * fontScale));
-                const activeFont = isSelected && hoverPreviewFont ? hoverPreviewFont : (style.fontFamily || 'Cairo');
+                const text =
+                  getElementTextValue(el, dataRows, activeRecordIndex) ||
+                  el.label ||
+                  (el.fieldName ? `[${el.fieldName}]` : 'نص جديد');
 
-                const shadowStyle = style.shadow?.enabled
-                  ? `${style.shadow.offsetX ?? 3}px ${style.shadow.offsetY ?? 3}px ${style.shadow.blur ?? 4}px ${getShadowRgba(style.shadow.color || '#000000', style.shadow.opacity ?? 0.6)}`
-                  : undefined;
-
-                const strokeStyle = style.stroke?.enabled
-                  ? `${Math.max(1, Math.round((style.stroke.width || 1) * fontScale))}px ${style.stroke.color || '#000000'}`
-                  : undefined;
+                const computedStyle = getComputedElementCss(style, fontScale, {
+                  isSelected,
+                  hoverPreviewFont,
+                });
 
                 return (
                   <div
@@ -591,23 +594,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                     style={{
                       left: `${el.xPercent}%`,
                       top: `${el.yPercent}%`,
-                      transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
-                      fontFamily: activeFont,
-                      fontSize: `${scaledFontSize}px`,
-                      fontWeight: style.fontWeight || 'normal',
-                      color: style.color || '#000000',
-                      textAlign: style.textAlign || 'right',
-                      textShadow: shadowStyle,
-                      WebkitTextStroke: strokeStyle,
-                      backgroundColor: style.bg?.enabled ? style.bg.color : undefined,
-                      padding: style.bg?.enabled ? `${(style.bg.padding || 4) * fontScale}px` : undefined,
-                      borderRadius: style.bg?.enabled ? `${style.bg.borderRadius || 4}px` : undefined,
-                      opacity: style.opacity ?? 1,
+                      ...computedStyle,
+                      outline: isSelected ? '2px dashed #4f46e5' : undefined,
+                      outlineOffset: isSelected ? '4px' : undefined,
                     }}
-                    className={`absolute cursor-move select-none whitespace-nowrap leading-tight transition-all ${
-                      isSelected
-                        ? 'ring-2 ring-indigo-600 rounded px-1.5 py-0.5 shadow-md bg-white/70'
-                        : 'hover:ring-1 hover:ring-indigo-300'
+                    className={`absolute cursor-move select-none whitespace-nowrap transition-shadow ${
+                      isSelected ? 'z-30' : 'hover:outline hover:outline-1 hover:outline-indigo-300'
                     }`}
                   >
                     {text}
@@ -615,7 +607,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                     {/* Floating Quick Action Toolbar for selected element */}
                     {isSelected && (
                       <div
-                        className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white border border-slate-300 rounded px-1.5 py-1 shadow-md flex items-center gap-1 z-30 pointer-events-auto"
+                        style={{
+                          transform: `rotate(${-(style.rotation || 0)}deg)`,
+                          transformOrigin: 'bottom center',
+                        }}
+                        className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white border border-slate-300 rounded px-1.5 py-1 shadow-md flex items-center gap-1 z-40 pointer-events-auto"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {/* Font size +/- */}

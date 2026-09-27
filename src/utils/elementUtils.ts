@@ -1,4 +1,5 @@
-import { DataRow, FieldElement, GridSetup, GridSlotConfig } from '../types';
+import React from 'react';
+import { DataRow, FieldElement, GridSetup, GridSlotConfig, TextEffect } from '../types';
 import { formatCellValue } from './excelParser';
 
 /** Standard reference width in pixels for scaling proportional elements */
@@ -129,3 +130,112 @@ export function getElementTextValue(
 
   return '';
 }
+
+export interface ComputedElementStyleOptions {
+  isSelected?: boolean;
+  hoverPreviewFont?: string | null;
+}
+
+/**
+ * Computes exact CSS styles for text element rendering matching pdfGenerator 1:1
+ */
+export function getComputedElementCss(
+  style: TextEffect,
+  fontScale: number,
+  options?: ComputedElementStyleOptions
+): React.CSSProperties {
+  const activeFont =
+    options?.isSelected && options?.hoverPreviewFont
+      ? options.hoverPreviewFont
+      : style.fontFamily || 'Cairo';
+
+  const fontSizePx = Math.max(6, Math.round(style.fontSize * fontScale));
+  const fontWeight = style.fontWeight || '400';
+  const fontStyle = style.fontStyle === 'italic' ? 'italic' : 'normal';
+  const textAlign = style.textAlign || 'center';
+  const rotation = style.rotation || 0;
+
+  // Determine translation based on text alignment to match Canvas 2D ctx.textAlign
+  let translateX = '-50%';
+  if (textAlign === 'right') {
+    translateX = '-100%';
+  } else if (textAlign === 'left') {
+    translateX = '0%';
+  }
+
+  // Stroke calculation matching pdfGenerator
+  const strokeAlign = style.stroke?.align || 'outside';
+  const rawStrokeWidth = style.stroke?.width ?? 1;
+  const renderedStrokeWidth = rawStrokeWidth * fontScale;
+  const strokeColor = style.stroke?.color || '#000000';
+  const hasStroke = Boolean(style.stroke?.enabled && renderedStrokeWidth > 0);
+
+  // Shadow calculation matching pdfGenerator (angle, distance, blur, extendBeyondStroke)
+  const hasShadow = Boolean(style.shadow?.enabled);
+  let shadowStyle: string | undefined = undefined;
+
+  if (hasShadow) {
+    let baseDistance = style.shadow.distance ?? 4;
+    if (hasStroke && (style.shadow.extendBeyondStroke ?? true)) {
+      baseDistance += rawStrokeWidth + (style.shadow.extraOffsetPx || 0);
+    }
+
+    let shadowX = style.shadow.offsetX ?? 2;
+    let shadowY = style.shadow.offsetY ?? 2;
+    if (style.shadow.angle !== undefined) {
+      const rad = (style.shadow.angle * Math.PI) / 180;
+      shadowX = Math.cos(rad) * baseDistance;
+      shadowY = Math.sin(rad) * baseDistance;
+    }
+
+    const scaledShadowX = shadowX * fontScale;
+    const scaledShadowY = shadowY * fontScale;
+    const scaledShadowBlur = (style.shadow.blur ?? 4) * fontScale;
+    const shadowColorRgba = getShadowRgba(style.shadow.color || '#000000', style.shadow.opacity ?? 0.6);
+
+    shadowStyle = `${scaledShadowX.toFixed(1)}px ${scaledShadowY.toFixed(1)}px ${scaledShadowBlur.toFixed(1)}px ${shadowColorRgba}`;
+  }
+
+  // Outside stroke in CSS via paintOrder
+  let webkitTextStroke: string | undefined = undefined;
+  let paintOrder: string | undefined = undefined;
+
+  if (hasStroke) {
+    if (strokeAlign === 'outside') {
+      paintOrder = 'stroke fill';
+      webkitTextStroke = `${Math.max(1, Math.round(renderedStrokeWidth * 2))}px ${strokeColor}`;
+    } else if (strokeAlign === 'inside') {
+      paintOrder = 'fill stroke';
+      webkitTextStroke = `${Math.max(1, Math.round(renderedStrokeWidth * 2))}px ${strokeColor}`;
+    } else {
+      paintOrder = 'normal';
+      webkitTextStroke = `${Math.max(1, Math.round(renderedStrokeWidth))}px ${strokeColor}`;
+    }
+  }
+
+  // Background Box
+  const hasBg = Boolean(style.bg?.enabled);
+  const bgPadding = hasBg ? `${Math.max(1, Math.round((style.bg.padding || 4) * fontScale))}px` : undefined;
+  const bgRadius = hasBg ? `${Math.round((style.bg.borderRadius || 4) * fontScale)}px` : undefined;
+
+  return {
+    transformOrigin: '0 0',
+    transform: `rotate(${rotation}deg) translate(${translateX}, -50%)`,
+    fontFamily: `"${activeFont}", sans-serif`,
+    fontSize: `${fontSizePx}px`,
+    fontWeight,
+    fontStyle,
+    color: style.color || '#000000',
+    textAlign,
+    textShadow: shadowStyle,
+    WebkitTextStroke: webkitTextStroke,
+    paintOrder,
+    backgroundColor: hasBg ? style.bg.color || '#ffffff' : undefined,
+    padding: bgPadding,
+    borderRadius: bgRadius,
+    opacity: style.opacity ?? 1,
+    lineHeight: style.lineHeight || 1.2,
+    letterSpacing: style.letterSpacing ? `${style.letterSpacing * fontScale}px` : undefined,
+  };
+}
+

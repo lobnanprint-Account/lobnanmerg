@@ -1,7 +1,14 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Download, Eye, X } from 'lucide-react';
 import { DataRow, FieldElement, GridSetup, PaperOrientation, PaperSize } from '../types';
-import { getElementTextValue, getRowForElement, getShadowRgba, getSlotConfig, REFERENCE_CARD_WIDTH } from '../utils/elementUtils';
+import {
+  getComputedElementCss,
+  getElementTextValue,
+  getRowForElement,
+  getShadowRgba,
+  getSlotConfig,
+  REFERENCE_CARD_WIDTH,
+} from '../utils/elementUtils';
 import { QrCode } from 'lucide-react';
 
 interface PreviewSheetModalProps {
@@ -243,7 +250,8 @@ export const PreviewSheetModal: React.FC<PreviewSheetModalProps> = ({
                             style={{
                               left: `${el.xPercent}%`,
                               top: `${el.yPercent}%`,
-                              transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
+                              transformOrigin: '0 0',
+                              transform: `rotate(${style.rotation || 0}deg) translate(-50%, -50%)`,
                               opacity: style.opacity ?? 1,
                             }}
                             className="absolute bg-white border border-slate-300 rounded p-1 flex flex-col items-center justify-center shadow-2xs"
@@ -255,36 +263,11 @@ export const PreviewSheetModal: React.FC<PreviewSheetModalProps> = ({
                       }
 
                       const textVal =
-                        getElementTextValue(el, dataRows, cardOrPageIndex, slotCfg) || el.label || `[${el.fieldName || 'مربع نص'}]`;
+                        getElementTextValue(el, dataRows, cardOrPageIndex, slotCfg) ||
+                        el.label ||
+                        (el.fieldName ? `[${el.fieldName}]` : 'نص جديد');
 
-                      const renderedFontSize = Math.max(6, style.fontSize * fontScale);
-                      const rawStrokeWidth = style.stroke?.width || 1;
-                      const renderedStrokeWidth = rawStrokeWidth * fontScale;
-                      const strokeColor = style.stroke?.color || '#000000';
-                      const hasStroke = style.stroke?.enabled && renderedStrokeWidth > 0;
-
-                      let baseDistance = style.shadow?.distance ?? 4;
-                      if (hasStroke && (style.shadow?.extendBeyondStroke ?? true)) {
-                        baseDistance += rawStrokeWidth + (style.shadow?.extraOffsetPx || 0);
-                      }
-
-                      let shadowX = (style.shadow?.offsetX ?? 2) * fontScale;
-                      let shadowY = (style.shadow?.offsetY ?? 2) * fontScale;
-                      if (style.shadow?.enabled && style.shadow.angle !== undefined) {
-                        const rad = (style.shadow.angle * Math.PI) / 180;
-                        shadowX = Math.cos(rad) * baseDistance * fontScale;
-                        shadowY = Math.sin(rad) * baseDistance * fontScale;
-                      }
-                      const shadowBlur = (style.shadow?.blur ?? 4) * fontScale;
-                      const shadowColorRgba = getShadowRgba(style.shadow?.color || '#000000', style.shadow?.opacity ?? 0.6);
-
-                      const textShadowStyle = style.shadow?.enabled
-                        ? `${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowColorRgba}`
-                        : 'none';
-
-                      const strokeStyle = hasStroke
-                        ? `${Math.max(1, Math.round(renderedStrokeWidth))}px ${strokeColor}`
-                        : undefined;
+                      const computedStyle = getComputedElementCss(style, fontScale);
 
                       return (
                         <div
@@ -292,18 +275,7 @@ export const PreviewSheetModal: React.FC<PreviewSheetModalProps> = ({
                           style={{
                             left: `${el.xPercent}%`,
                             top: `${el.yPercent}%`,
-                            transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
-                            fontFamily: style.fontFamily || 'Cairo',
-                            fontSize: `${renderedFontSize}px`,
-                            fontWeight: style.fontWeight || 'normal',
-                            color: style.color || '#000000',
-                            textAlign: style.textAlign || 'right',
-                            textShadow: textShadowStyle,
-                            WebkitTextStroke: strokeStyle,
-                            backgroundColor: style.bg?.enabled ? style.bg.color : undefined,
-                            padding: style.bg?.enabled ? `${(style.bg.padding || 4) * fontScale}px` : undefined,
-                            borderRadius: style.bg?.enabled ? `${(style.bg.borderRadius || 4) * fontScale}px` : undefined,
-                            opacity: style.opacity ?? 1,
+                            ...computedStyle,
                           }}
                           className="absolute whitespace-nowrap leading-tight pointer-events-none"
                         >

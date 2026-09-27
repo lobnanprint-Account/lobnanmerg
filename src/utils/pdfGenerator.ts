@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import { DataRow, FieldElement, GridSetup, PaperOrientation, PaperSize } from '../types';
-import { getRowForElement, getShadowRgba, getSlotConfig, REFERENCE_CARD_WIDTH } from './elementUtils';
+import { getElementTextValue, getRowForElement, getShadowRgba, getSlotConfig, REFERENCE_CARD_WIDTH } from './elementUtils';
 
 export interface PDFExportConfig {
   paperSize: PaperSize;
@@ -39,14 +39,8 @@ async function drawElementOnCanvas(
   // Resolve target row for this element (respecting per-element or slot custom row config if enabled)
   const resolvedRow = getRowForElement(element, allDataRows, cardOrPageIndex, slotConfig) || currentRow;
 
-  // Determine text content
-  let text = '';
-  if (element.type === 'field' && element.fieldName) {
-    const rawVal = resolvedRow[element.fieldName] !== undefined ? String(resolvedRow[element.fieldName]) : '';
-    text = `${element.prefix || ''}${rawVal}${element.suffix || ''}`;
-  } else if (element.type === 'static_text') {
-    text = `${element.prefix || ''}${element.staticText || ''}${element.suffix || ''}`;
-  }
+  // Determine text content using getElementTextValue for 100% parity with preview
+  const text = getElementTextValue(element, allDataRows, cardOrPageIndex, slotConfig);
 
   // Calculate coordinates on card
   const posX = (element.xPercent / 100) * cardWidthPx;
@@ -92,6 +86,10 @@ async function drawElementOnCanvas(
   ctx.textBaseline = 'middle';
   ctx.textAlign = style.textAlign || 'center';
   ctx.globalAlpha = style.opacity ?? 1;
+
+  if (style.letterSpacing && 'letterSpacing' in ctx) {
+    (ctx as any).letterSpacing = `${style.letterSpacing * fontScale}px`;
+  }
 
   // Measure text width for background box & stroke
   const metrics = ctx.measureText(text);
@@ -245,6 +243,16 @@ export async function generateMailMergePDF(config: PDFExportConfig): Promise<jsP
   // Ensure custom and Arabic fonts are loaded
   if (typeof document !== 'undefined' && document.fonts) {
     try {
+      for (const el of elements) {
+        if (el.style?.fontFamily) {
+          const fontStr = `${el.style.fontStyle === 'italic' ? 'italic ' : ''}${el.style.fontWeight || '400'} 16px "${el.style.fontFamily}"`;
+          try {
+            await document.fonts.load(fontStr);
+          } catch {
+            // continue
+          }
+        }
+      }
       await document.fonts.ready;
     } catch {
       // ignore

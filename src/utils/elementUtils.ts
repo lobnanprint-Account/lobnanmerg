@@ -120,6 +120,24 @@ export function getElementTextValue(
   }
 
   if (element.type === 'field' || element.type === 'qr_code') {
+    const config = element.customRowConfig;
+    if (config && config.enabled && config.mode === 'merge_all') {
+      if (!element.fieldName || !dataRows || dataRows.length === 0) {
+        return `${prefix}${suffix}`;
+      }
+      const startRowIdx = Math.max(0, (config.startRow || 1) - 1);
+      const endRowIdx = Math.min(dataRows.length - 1, (config.endRow || dataRows.length) - 1);
+      const sep = config.separator !== undefined ? config.separator : ' - ';
+      const values: string[] = [];
+      for (let i = startRowIdx; i <= endRowIdx; i++) {
+        const val = dataRows[i]?.[element.fieldName];
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          values.push(formatCellValue(val));
+        }
+      }
+      return `${prefix}${values.join(sep)}${suffix}`;
+    }
+
     const row = getRowForElement(element, dataRows, defaultCardIndex, slotConfig);
     if (!row || !element.fieldName) {
       return `${prefix}${suffix}`;

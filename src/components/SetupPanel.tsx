@@ -211,18 +211,24 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
 
         {/* Paper Size selector */}
         <div>
-          <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">قياس الورقة:</label>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] font-semibold text-slate-600">قياس الورقة:</label>
+            <span className="text-[10px] text-slate-500 font-mono font-medium">
+              {paperDimensions.widthMm} × {paperDimensions.heightMm} مم
+            </span>
+          </div>
+          <div className="grid grid-cols-6 gap-1 w-full">
             {(['A4', 'A3', 'A5', 'Letter', 'Legal', 'Custom'] as PaperSize[]).map((size) => (
               <button
                 key={size}
                 type="button"
                 onClick={() => handleSelectPaperSize(size)}
-                className={`px-2.5 py-1 rounded text-xs font-semibold border transition ${
+                className={`py-1.5 px-0.5 rounded text-[11px] font-bold border transition text-center truncate ${
                   paperSize === size
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xs'
                     : 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
                 }`}
+                title={size === 'Custom' ? 'قياس مخصص' : size}
               >
                 {size === 'Custom' ? 'مخصص' : size}
               </button>
@@ -289,7 +295,21 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
             />
           </div>
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 block mb-1">الصفوف (Rows)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-semibold text-slate-600">الصفوف (Rows)</label>
+              <button
+                type="button"
+                onClick={() => onChangeGrid({ ...grid, rows: 1 })}
+                className={`text-[10px] px-1.5 py-0.2 rounded border transition font-bold ${
+                  grid.rows === 1
+                    ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-300'
+                }`}
+                title="دمج كل الأقسام في سطر واحد (صف واحد)"
+              >
+                سطر واحد
+              </button>
+            </div>
             <input
               type="number"
               min="1"
@@ -304,49 +324,49 @@ export const SetupPanel: React.FC<SetupPanelProps> = ({
         {/* Margins */}
         <div className="space-y-1.5">
           <label className="text-[11px] font-semibold text-slate-600 block">الهوامش الخارجية (مم):</label>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-4 gap-1.5 text-xs">
             <div>
-              <span className="text-[10px] text-slate-500">أعلى (Top)</span>
+              <span className="text-[10px] text-slate-500 block mb-0.5 text-center">أعلى</span>
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={grid.marginTopMm}
                 onChange={(e) => onChangeGrid({ ...grid, marginTopMm: Number(e.target.value) || 0 })}
-                className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 text-xs"
+                className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-slate-800 text-xs text-center font-mono font-medium"
               />
             </div>
             <div>
-              <span className="text-[10px] text-slate-500">أسفل (Bottom)</span>
+              <span className="text-[10px] text-slate-500 block mb-0.5 text-center">أسفل</span>
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={grid.marginBottomMm}
                 onChange={(e) => onChangeGrid({ ...grid, marginBottomMm: Number(e.target.value) || 0 })}
-                className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 text-xs"
+                className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-slate-800 text-xs text-center font-mono font-medium"
               />
             </div>
             <div>
-              <span className="text-[10px] text-slate-500">يمين (Right)</span>
+              <span className="text-[10px] text-slate-500 block mb-0.5 text-center">يمين</span>
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={grid.marginRightMm}
                 onChange={(e) => onChangeGrid({ ...grid, marginRightMm: Number(e.target.value) || 0 })}
-                className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 text-xs"
+                className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-slate-800 text-xs text-center font-mono font-medium"
               />
             </div>
             <div>
-              <span className="text-[10px] text-slate-500">يسار (Left)</span>
+              <span className="text-[10px] text-slate-500 block mb-0.5 text-center">يسار</span>
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={grid.marginLeftMm}
                 onChange={(e) => onChangeGrid({ ...grid, marginLeftMm: Number(e.target.value) || 0 })}
-                className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 text-xs"
+                className="w-full bg-white border border-slate-300 rounded px-1.5 py-1 text-slate-800 text-xs text-center font-mono font-medium"
               />
             </div>
           </div>

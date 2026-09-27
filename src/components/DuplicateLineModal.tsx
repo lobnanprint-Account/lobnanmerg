@@ -30,7 +30,7 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
   const origEnd = element.customRowConfig?.endRow || 20;
   const currentSpan = Math.max(1, origEnd - origStart + 1);
 
-  const [mode, setMode] = useState<'range' | 'fixed' | 'offset'>(
+  const [mode, setMode] = useState<'range' | 'fixed' | 'offset' | 'merge_all'>(
     element.customRowConfig?.mode || 'range'
   );
 
@@ -38,6 +38,7 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
   const [endRow, setEndRow] = useState<number>(origEnd + currentSpan);
   const [fixedRow, setFixedRow] = useState<number>(element.customRowConfig?.fixedRow || 1);
   const [offset, setOffset] = useState<number>((element.customRowConfig?.offset || 0) + currentSpan);
+  const [separator, setSeparator] = useState<string>(element.customRowConfig?.separator || ' - ');
 
   const nextSlotDefault =
     element.targetSlotIndex !== undefined && element.targetSlotIndex !== null && element.targetSlotIndex !== -1
@@ -66,6 +67,7 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
       endRow,
       fixedRow,
       offset,
+      separator,
     };
 
     let deltaX = 0;
@@ -124,11 +126,11 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
               <Grid className="w-3.5 h-3.5 text-indigo-600" />
               الظهور على القسم في الورقة:
             </label>
-            <div className="grid grid-cols-3 gap-1 text-xs font-bold">
+            <div className="flex flex-wrap sm:flex-nowrap gap-1 text-xs font-bold overflow-x-auto pb-0.5">
               <button
                 type="button"
                 onClick={() => setTargetSlotIndex(null)}
-                className={`py-1.5 px-2 rounded border transition ${
+                className={`py-1.5 px-2 rounded border transition shrink-0 ${
                   targetSlotIndex === null || targetSlotIndex === -1
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xs'
                     : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
@@ -141,7 +143,7 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => setTargetSlotIndex(idx)}
-                  className={`py-1.5 px-2 rounded border transition ${
+                  className={`py-1.5 px-2 rounded border transition shrink-0 ${
                     targetSlotIndex === idx
                       ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xs'
                       : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
@@ -158,7 +160,7 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
             <label className="text-xs font-bold text-slate-700 block">
               نظام تحديد الأسطر:
             </label>
-            <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded border border-slate-300 text-xs font-bold">
+            <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded border border-slate-300 text-xs font-bold">
               <button
                 type="button"
                 onClick={() => setMode('range')}
@@ -193,6 +195,18 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
                 }`}
               >
                 إزاحة (+ Offset)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('merge_all')}
+                className={`py-1.5 rounded transition flex items-center justify-center gap-1 text-[11px] ${
+                  mode === 'merge_all'
+                    ? 'bg-white text-indigo-700 shadow-2xs border border-slate-300'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="دمج كل الأسطر في سطر واحد"
+              >
+                دمج في سطر واحد
               </button>
             </div>
           </div>
@@ -296,6 +310,68 @@ export const DuplicateLineModal: React.FC<DuplicateLineModalProps> = ({
                 onChange={(e) => setOffset(Number(e.target.value) || 0)}
                 className="w-full bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-800 font-mono font-bold focus:border-indigo-500"
               />
+            </div>
+          )}
+
+          {mode === 'merge_all' && (
+            <div className="bg-slate-50 p-3 rounded border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between text-xs text-indigo-900 font-bold bg-indigo-50 p-2 rounded border border-indigo-200">
+                <span>دمج جميع الأسطر في سطر نصي واحد</span>
+                <span className="text-[10px] text-slate-500 font-mono font-bold">سطر 1 إلى {totalRecordsCount}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    من السطر رقم:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={totalRecordsCount}
+                    value={startRow}
+                    onChange={(e) => setStartRow(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-full bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-800 font-mono font-bold focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    إلى السطر رقم:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={totalRecordsCount}
+                    value={endRow}
+                    onChange={(e) => setEndRow(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-full bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-800 font-mono font-bold focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1 text-xs">
+                  الفاصل بين الأسطر المدمجة:
+                </label>
+                <div className="grid grid-cols-3 gap-1 text-xs">
+                  {[
+                    { label: 'شرطة ( - )', val: ' - ' },
+                    { label: 'فاصلة ( ، )', val: ' ، ' },
+                    { label: 'مسافة', val: ' ' },
+                  ].map((s) => (
+                    <button
+                      key={s.val}
+                      type="button"
+                      onClick={() => setSeparator(s.val)}
+                      className={`py-1 px-1.5 rounded border font-medium transition ${
+                        separator === s.val
+                          ? 'bg-indigo-600 border-indigo-600 text-white font-bold shadow-2xs'
+                          : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

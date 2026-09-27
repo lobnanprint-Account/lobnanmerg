@@ -87,11 +87,12 @@ export interface TextEffect {
 
 export interface CustomRowConfig {
   enabled: boolean;
-  mode: 'range' | 'fixed' | 'offset';
+  mode: 'range' | 'fixed' | 'offset' | 'merge_all';
   startRow?: number; // 1-indexed (e.g., 1)
   endRow?: number; // 1-indexed (e.g., 50)
   fixedRow?: number; // 1-indexed fixed row number (e.g. 1)
   offset?: number; // row offset (e.g., +10)
+  separator?: string; // separator for merge_all (e.g. " - " or ", " or " ")
 }
 
 export interface FieldElement {

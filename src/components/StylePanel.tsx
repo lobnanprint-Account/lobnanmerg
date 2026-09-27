@@ -318,7 +318,9 @@ export const StylePanel: React.FC<StylePanelProps> = ({
 
                         {element.customRowConfig?.enabled && (
                           <span className="text-[9px] bg-amber-50 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-mono font-bold">
-                            سطر {element.customRowConfig.startRow || 1}-{element.customRowConfig.endRow || 20}
+                            {element.customRowConfig.mode === 'merge_all'
+                              ? `دمج أسطر ${element.customRowConfig.startRow || 1}-${element.customRowConfig.endRow || 20}`
+                              : `سطر ${element.customRowConfig.startRow || 1}-${element.customRowConfig.endRow || 20}`}
                           </span>
                         )}
                       </div>
@@ -647,6 +649,83 @@ const SingleElementControls: React.FC<SingleElementControlsProps> = ({
 
             {element.customRowConfig?.enabled && (
               <div className="space-y-2 pt-1.5 border-t border-slate-200">
+                {/* Mode toggle between range and merge_all */}
+                <div className="grid grid-cols-2 gap-1 bg-slate-100 p-0.5 rounded text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChangeElementProp(element.id, {
+                        customRowConfig: {
+                          ...element.customRowConfig!,
+                          mode: 'range',
+                        },
+                      })
+                    }
+                    className={`py-1 px-1 rounded transition text-center ${
+                      (element.customRowConfig.mode || 'range') !== 'merge_all'
+                        ? 'bg-white text-indigo-700 shadow-2xs border border-slate-300'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    توزيع الأسطر (نطاق)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChangeElementProp(element.id, {
+                        customRowConfig: {
+                          ...element.customRowConfig!,
+                          mode: 'merge_all',
+                          separator: element.customRowConfig!.separator || ' - ',
+                        },
+                      })
+                    }
+                    className={`py-1 px-1 rounded transition text-center ${
+                      element.customRowConfig.mode === 'merge_all'
+                        ? 'bg-white text-indigo-700 shadow-2xs border border-slate-300'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="دمج كل الأسطر في سطر واحد"
+                  >
+                    دمج كل الأسطر في سطر
+                  </button>
+                </div>
+
+                {element.customRowConfig.mode === 'merge_all' && (
+                  <div className="bg-indigo-50/70 p-2 rounded border border-indigo-200 text-xs space-y-1.5">
+                    <span className="text-[10px] font-bold text-indigo-900 block">
+                      فاصل الدمج بين الأسطر:
+                    </span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {[
+                        { label: 'شرطة ( - )', val: ' - ' },
+                        { label: 'فاصلة ( ، )', val: ' ، ' },
+                        { label: 'مسافة', val: ' ' },
+                      ].map((sep) => (
+                        <button
+                          key={sep.val}
+                          type="button"
+                          onClick={() =>
+                            onChangeElementProp(element.id, {
+                              customRowConfig: {
+                                ...element.customRowConfig!,
+                                separator: sep.val,
+                              },
+                            })
+                          }
+                          className={`py-0.5 px-1 rounded text-[10px] border transition ${
+                            (element.customRowConfig?.separator || ' - ') === sep.val
+                              ? 'bg-indigo-600 border-indigo-600 text-white font-bold'
+                              : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          {sep.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded border border-slate-200">
                   <div>
                     <label className="text-[10px] text-slate-600 block mb-0.5 font-bold">من سطر:</label>
